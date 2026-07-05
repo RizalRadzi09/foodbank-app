@@ -197,7 +197,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
 
         if (ambilMakananUtamaHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Had harian barangan dicapai. Anda hanya boleh menanda kotak Makanan Infaq (jika ada).';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan makanan pada hari ini.';
             msgEl.style.display = 'block';
             btn.disabled = false; 
             btn.classList.remove('btn-locked');
@@ -233,7 +233,7 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         Swal.fire({
             icon: 'error',
             title: 'Troli Kosong',
-            text: 'Sila pilih sekurang-kurangnya 1 item utama ATAU tandakan kotak Makanan Infaq.',
+            text: 'Sila pilih sekurang-kurangnya 1 item makanan ATAU tandakan kotak Makanan Infaq.',
             confirmButtonColor: '#e74c3c'
         });
         return;
@@ -243,8 +243,8 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     if(hadPenuh && currentTotal > 0) {
         Swal.fire({
             icon: 'error',
-            title: 'Had Maksimum Tercapai',
-            text: 'Anda telah mengambil had maksimum barangan harian. Anda hanya dibenarkan menanda kotak Makanan Infaq sahaja.',
+            title: 'Had Maksimum Dicapai',
+            text: 'Anda telah membuat ambilan makanan pada hari ini.',
             confirmButtonColor: '#e74c3c'
         });
         return;
