@@ -153,22 +153,30 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     let latestRecord = null;
     let ambilMakananUtamaHariIni = false;
 
-    // Cari dari data terbaharu
+    // Cari dari data terbaharu (bawah ke atas)
     for (let i = databaseRecords.length - 1; i >= 0; i--) {
         let row = databaseRecords[i];
+        
         if (row[1] && row[1].trim() === matrik) {
+            
+            // Simpan maklumat pelajar untuk autofill
             if (!latestRecord) {
-                latestRecord = row; // Simpan untuk autofill
+                latestRecord = row; 
             }
             
-            // Semak logik jika dia hadir pada hari ini
+            // Semak jika rekod ini berlaku pada HARI INI
             if (isToday(row[0])) {
                 let rowDataStr = row.join(" ");
-                // Semak jika rekod harini ada mengandungi nama barangan dari senarai asal
                 let adaMakananUtama = itemList.some(item => rowDataStr.includes(item));
+                
                 if (adaMakananUtama) {
                     ambilMakananUtamaHariIni = true;
                 }
+            } else {
+                // KUNCI KELAJUAN: 
+                // Jika sistem terjumpa rekod lama pelajar ini (bukan hari ini), 
+                // terus BERHENTI mencari. Tidak perlu scan beribu rekod sejarah lama!
+                break;
             }
         }
     }
@@ -189,7 +197,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             msgEl.className = 'status-msg status-error';
             msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Had harian barangan dicapai. Anda hanya boleh mengambil Makanan Infaq (jika ada).';
             msgEl.style.display = 'block';
-            btn.disabled = false; // Buka sekatan supaya dia boleh klik infaq
+            btn.disabled = false; 
             btn.classList.remove('btn-locked');
             btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         } else {
@@ -201,6 +209,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         }
     } else {
+        // Ini akan lancar sekarang kerana tiada lagi 'lagging'
         clearAutofill();
         msgEl.className = 'status-msg status-info';
         msgEl.innerHTML = '<i class="fas fa-info-circle"></i> <strong>Pengguna Baharu:</strong> Sila isi maklumat penuh anda buat kali pertama.';
@@ -210,7 +219,6 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
     }
 });
-
 
 document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     e.preventDefault(); 
