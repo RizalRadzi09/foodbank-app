@@ -136,17 +136,28 @@ async function fetchDatabase() {
     }
 }
 
+function clearAutofill() {
+    document.getElementById('fullname').value = '';
+    document.getElementById('phone').value = '';
+    document.getElementById('program').value = '';
+    document.getElementById('year').value = '';
+    document.getElementById('fullname').readOnly = false;
+    document.getElementById('phone').readOnly = false;
+}
+
 document.getElementById('matrix').addEventListener('input', (e) => {
     const matrik = e.target.value.trim();
     const msgEl = document.getElementById('status-message');
     const btn = document.getElementById('submitBtn');
 
+    // Kosongkan dan set semula jika kurang 7 digit
     if (matrik.length < 7) {
         clearAutofill();
         msgEl.style.display = 'none';
         btn.disabled = false;
         btn.classList.remove('btn-locked');
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
+        btn.setAttribute('data-had-penuh', 'tidak');
         return;
     }
 
@@ -157,7 +168,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     for (let i = databaseRecords.length - 1; i >= 0; i--) {
         let row = databaseRecords[i];
         
-        if (row[1] && row[1].trim() === matrik) {
+        if (row && row.length > 1 && row[1] && row[1].trim() === matrik) {
             
             // Simpan maklumat pelajar untuk autofill
             if (!latestRecord) {
@@ -173,9 +184,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
                     ambilMakananUtamaHariIni = true;
                 }
             } else {
-                // KUNCI KELAJUAN: 
-                // Jika sistem terjumpa rekod lama pelajar ini (bukan hari ini), 
-                // terus BERHENTI mencari. Tidak perlu scan beribu rekod sejarah lama!
+                // KUNCI KELAJUAN: Jika terjumpa rekod lama pelajar ini, terus BERHENTI mencari.
                 break;
             }
         }
@@ -199,24 +208,20 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             msgEl.style.display = 'block';
             btn.disabled = false; 
             btn.classList.remove('btn-locked');
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         } else {
             msgEl.className = 'status-msg status-success';
             msgEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.';
             msgEl.style.display = 'block';
             btn.disabled = false;
             btn.classList.remove('btn-locked');
-            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         }
     } else {
-        // Ini akan lancar sekarang kerana tiada lagi 'lagging'
         clearAutofill();
         msgEl.className = 'status-msg status-info';
         msgEl.innerHTML = '<i class="fas fa-info-circle"></i> <strong>Pengguna Baharu:</strong> Sila isi maklumat penuh anda buat kali pertama.';
         msgEl.style.display = 'block';
         btn.disabled = false;
         btn.classList.remove('btn-locked');
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
     }
 });
 
@@ -252,7 +257,7 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         return;
     }
 
-    // 3. Masukkan "Makanan Infaq" secara senyap-senyap ke dalam final_items jika ditanda
+    // 3. Masukkan "Makanan Infaq" secara automatik ke dalam final_items jika ditanda
     let finalItemsVal = document.getElementById('final_items').value;
     if (infaqDicheck) {
         if (finalItemsVal && currentTotal > 0) {
@@ -273,7 +278,7 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         mode: 'no-cors',
         body: formData
     }).then(() => {
-        // Kembalikan semula teks asal pada final_items (in case borang direset)
+        // Kembalikan semula teks asal pada final_items untuk keselamatan data
         let selectedItems = [];
         for (const [key, val] of Object.entries(cart)) {
             if (val > 0) selectedItems.push(`${key} (${val})`);
