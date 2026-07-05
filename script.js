@@ -150,7 +150,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     const msgEl = document.getElementById('status-message');
     const btn = document.getElementById('submitBtn');
 
-    // Kosongkan dan set semula jika kurang 7 digit
+    // Kosongkan dan set semula jika kurang 7 digit (Pasti lancar bila dipadam)
     if (matrik.length < 7) {
         clearAutofill();
         msgEl.style.display = 'none';
@@ -170,22 +170,21 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         
         if (row && row.length > 1 && row[1] && row[1].trim() === matrik) {
             
-            // Simpan maklumat pelajar untuk autofill
+            // Sentiasa simpan maklumat paling terkini untuk di-autofill
             if (!latestRecord) {
                 latestRecord = row; 
             }
             
-            // Semak jika rekod ini berlaku pada HARI INI
+            // PERBAIKAN LOGIK: Semak sama ada ada rekod bertarikh HARI INI
             if (isToday(row[0])) {
                 let rowDataStr = row.join(" ");
                 let adaMakananUtama = itemList.some(item => rowDataStr.includes(item));
                 
                 if (adaMakananUtama) {
                     ambilMakananUtamaHariIni = true;
+                    // Jika dah jumpa rekod hari ini yang ada makanan utama, boleh terus berhenti cari.
+                    break;
                 }
-            } else {
-                // KUNCI KELAJUAN: Jika terjumpa rekod lama pelajar ini, terus BERHENTI mencari.
-                break;
             }
         }
     }
@@ -216,6 +215,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             btn.classList.remove('btn-locked');
         }
     } else {
+        // Paparan untuk Pengguna Baharu (Akan berfungsi dengan lancar tanpa lag)
         clearAutofill();
         msgEl.className = 'status-msg status-info';
         msgEl.innerHTML = '<i class="fas fa-info-circle"></i> <strong>Pengguna Baharu:</strong> Sila isi maklumat penuh anda buat kali pertama.';
