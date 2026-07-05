@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Agihan Food Bank</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+
+    <div class="container">
+        <div class="form-card">
+            <div class="form-header">
+                <div class="logo-placeholder">🍱</div>
+                <h1>Sistem Food Bank</h1>
+                <p>Sila isi maklumat di bawah untuk merekodkan pengambilan item anda.</p>
+            </div>
+
+            <form id="foodBankForm" onsubmit="kendalikanHantar(event)">
+                
+                <div class="form-group">
+                    <label for="namaPelajar">Nama Penuh Pelajar</label>
+                    <input 
+                        type="text" 
+                        id="namaPelajar" 
+                        placeholder="Contoh: AHMAD BIN AMRAN" 
+                        required 
+                        autocomplete="off"
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label for="pilihanItem">Pilih Item Makanan / Minuman</label>
+                    <select id="pilihanItem" required>
+                        <option value="" disabled selected>-- Sila Pilih Satu Item --</option>
+                        <option value="Air Kotak">Air Kotak</option>
+                        <option value="Biskut Paket">Biskut Paket</option>
+                        <option value="Roti Sandwic">Roti Sandwic</option>
+                        <option value="Makanan Segera">Makanan Segera (Cup)</option>
+                    </select>
+                    <small class="helper-text">*Nota: Setiap pelajar terhad kepada maksimum 1 unit bagi setiap item sehari.</small>
+                </div>
+
+                <button type="submit" id="btnHantar" class="btn-submit">
+                    Sahkan & Rekod Pengambilan
+                </button>
+            </form>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2026 Jawatankuasa Kebajikan Food Bank. Hak Cipta Terpelihara.</p>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    
+    <script>
+        // Fungsi pencetus apabila butang 'Submit' ditekan
+        function kendalikanHantar(event) {
+            event.preventDefault(); // Mengelakkan halaman daripada 'refresh'
+            
+            const nama = document.getElementById('namaPelajar').value.trim().toUpperCase();
+            const item = document.getElementById('pilihanItem').value;
+            
+            if (!nama || !item) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Maklumat Tidak Lengkap',
+                    text: 'Sila pastikan nama telah diisi dan item telah dipilih.',
+                    confirmButtonColor: '#3b82f6'
+                });
+                return;
+            }
+
+            // Memanggil fungsi hantarDataTransaksi yang berada di dalam fail script.js
+            hantarDataTransaksi(nama, item);
+        }
+    </script>
+</body>
+</html>

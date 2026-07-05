@@ -1,0 +1,157 @@
+/* ==========================================================================
+   KAWALAN ASAS & VARIABLES
+   ========================================================================== */
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --bg-color: #f1f5f9;
+    --card-bg: #ffffff;
+    --text-main: #1e293b;
+    --text-muted: #64748b;
+    --border-color: #cbd5e1;
+    --radius: 12px;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-main);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* ==========================================================================
+   STRUKTUR KONTENA & KAD BORANG
+   ========================================================================== */
+.container {
+    width: 100%;
+    max-width: 480px;
+}
+
+.form-card {
+    background: var(--card-bg);
+    padding: 35px 30px;
+    border-radius: var(--radius);
+    box-shadow: 0 10px 25px rgba(15, 23, 42, 0.08);
+    transition: transform 0.3s ease;
+}
+
+.form-header {
+    text-align: center;
+    margin-bottom: 30px;
+}
+
+.logo-placeholder {
+    font-size: 3rem;
+    margin-bottom: 10px;
+}
+
+.form-header h1 {
+    font-size: 1.6rem;
+    color: #0f172a;
+    font-weight: 700;
+    margin-bottom: 8px;
+}
+
+.form-header p {
+    font-size: 0.95rem;
+    color: var(--text-muted);
+    line-height: 1.4;
+}
+
+/* ==========================================================================
+   ELEMEN BORANG (INPUT & SELECT)
+   ========================================================================== */
+.form-group {
+    margin-bottom: 22px;
+}
+
+.form-group label {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+    color: #334155;
+}
+
+.form-group input[type="text"],
+.form-group select {
+    width: 100%;
+    padding: 12px 16px;
+    font-size: 0.95rem;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    background-color: #f8fafc;
+    color: var(--text-main);
+    outline: none;
+    transition: all 0.2s ease-in-out;
+}
+
+/* Kesan apabila pengguna klik pada input */
+.form-group input[type="text"]:focus,
+.form-group select:focus {
+    border-color: var(--primary-color);
+    background-color: #ffffff;
+    box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.15);
+}
+
+.helper-text {
+    display: block;
+    margin-top: 6px;
+    font-size: 0.8rem;
+    color: #b45309; /* Warna coklat/oren amaran lembut */
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   BUTANG HANTAR (SUBMIT BUTTON)
+   ========================================================================== */
+.btn-submit {
+    width: 100%;
+    padding: 14px;
+    font-size: 1rem;
+    font-weight: 600;
+    color: #ffffff;
+    background-color: var(--primary-color);
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 6px rgba(59, 130, 246, 0.2);
+    transition: all 0.2s ease;
+}
+
+.btn-submit:hover {
+    background-color: var(--primary-hover);
+    transform: translateY(-1px);
+    box-shadow: 0 6px 12px rgba(59, 130, 246, 0.3);
+}
+
+.btn-submit:active {
+    transform: translateY(1px);
+}
+
+/* ==========================================================================
+   NOTA KAKI (FOOTER)
+   ========================================================================== */
+.footer {
+    text-align: center;
+    margin-top: 20px;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+
+/* Responsive kawalan untuk skrin sangat kecil */
+@media (max-width: 400px) {
+    .form-card {
+        padding: 25px 20px;
+    }
+}
