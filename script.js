@@ -151,12 +151,30 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     }
 
     let latestRecord = null;
+    let ambilMakananUtamaHariIni = false;
+
+    // Cari dari data terbaharu
     for (let i = databaseRecords.length - 1; i >= 0; i--) {
-        if (databaseRecords[i][1] && databaseRecords[i][1].trim() === matrik) {
-            latestRecord = databaseRecords[i];
-            break;
+        let row = databaseRecords[i];
+        if (row[1] && row[1].trim() === matrik) {
+            if (!latestRecord) {
+                latestRecord = row; // Simpan untuk autofill
+            }
+            
+            // Semak logik jika dia hadir pada hari ini
+            if (isToday(row[0])) {
+                let rowDataStr = row.join(" ");
+                // Semak jika rekod harini ada mengandungi nama barangan dari senarai asal
+                let adaMakananUtama = itemList.some(item => rowDataStr.includes(item));
+                if (adaMakananUtama) {
+                    ambilMakananUtamaHariIni = true;
+                }
+            }
         }
     }
+
+    // Tanda status had pada butang hantar supaya boleh dirujuk masa disubmit
+    btn.setAttribute('data-had-penuh', ambilMakananUtamaHariIni ? 'ya' : 'tidak');
 
     if (latestRecord) {
         document.getElementById('fullname').value = (latestRecord[2] || '').toUpperCase();
@@ -167,13 +185,13 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         document.getElementById('fullname').readOnly = true;
         document.getElementById('phone').readOnly = true;
 
-        if (isToday(latestRecord[0])) {
+        if (ambilMakananUtamaHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan makanan pada hari ini.';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Had harian barangan dicapai. Anda hanya boleh mengambil Makanan Infaq (jika ada).';
             msgEl.style.display = 'block';
-            btn.disabled = true;
-            btn.classList.add('btn-locked');
-            btn.innerHTML = '<i class="fas fa-lock"></i> Sekatan: Had Harian Dicapai';
+            btn.disabled = false; // Buka sekatan supaya dia boleh klik infaq
+            btn.classList.remove('btn-locked');
+            btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         } else {
             msgEl.className = 'status-msg status-success';
             msgEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.';
@@ -193,30 +211,50 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     }
 });
 
-function clearAutofill() {
-    document.getElementById('fullname').value = '';
-    document.getElementById('phone').value = '';
-    document.getElementById('program').value = '';
-    document.getElementById('year').value = '';
-    document.getElementById('fullname').readOnly = false;
-    document.getElementById('phone').readOnly = false;
-}
 
 document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     e.preventDefault(); 
 
     const currentTotal = Object.values(cart).reduce((a, b) => a + b, 0);
-    if(currentTotal === 0) {
+    const infaqCheckbox = document.getElementById("makananInfaqCheckbox");
+    const infaqDicheck = infaqCheckbox ? infaqCheckbox.checked : false;
+    
+    const btn = document.getElementById('submitBtn');
+    const hadPenuh = btn.getAttribute('data-had-penuh') === 'ya';
+
+    // 1. Sekat jika kosong (Troli kosong & Tak tanda infaq)
+    if(currentTotal === 0 && !infaqDicheck) {
         Swal.fire({
             icon: 'error',
             title: 'Troli Kosong',
-            text: 'Sila pilih sekurang-kurangnya 1 item terlebih dahulu.',
+            text: 'Sila pilih sekurang-kurangnya 1 item atau tandakan Makanan Infaq.',
             confirmButtonColor: '#e74c3c'
         });
         return;
     }
 
-    const btn = document.getElementById('submitBtn');
+    // 2. Sekat jika kuota barangan dah habis tapi dia masih cuba tambah item utama
+    if(hadPenuh && currentTotal > 0) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Had Maksimum Tercapai',
+            text: 'Anda telah mengambil had maksimum barangan untuk hari ini. Anda hanya dibenarkan menanda kotak Makanan Infaq sahaja.',
+            confirmButtonColor: '#e74c3c'
+        });
+        return;
+    }
+
+    // 3. Masukkan "Makanan Infaq" secara senyap-senyap ke dalam final_items jika ditanda
+    let finalItemsVal = document.getElementById('final_items').value;
+    if (infaqDicheck) {
+        if (finalItemsVal && currentTotal > 0) {
+            finalItemsVal += ", Makanan Infaq";
+        } else {
+            finalItemsVal = "Makanan Infaq";
+        }
+        document.getElementById('final_items').value = finalItemsVal;
+    }
+
     btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghantar Data...';
     btn.disabled = true;
 
@@ -227,12 +265,17 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         mode: 'no-cors',
         body: formData
     }).then(() => {
+        // Kembalikan semula teks asal pada final_items (in case borang direset)
+        let selectedItems = [];
+        for (const [key, val] of Object.entries(cart)) {
+            if (val > 0) selectedItems.push(`${key} (${val})`);
+        }
+        document.getElementById('final_items').value = selectedItems.join(', ');
+
         document.getElementById('form-container').style.display = 'none';
         document.getElementById('success-screen').style.display = 'block';
         
-        // Mulakan carousel iklan apabila skrin kejayaan dipaparkan
         if(slideIndex === 0) showSlides();
-        
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }).catch(err => {
         Swal.fire({
