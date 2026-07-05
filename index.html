@@ -3,79 +3,167 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistem Agihan Food Bank</title>
+    <title>Sistem Food Bank FPQS</title>
+    
     <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 </head>
 <body>
 
+<div class="main-content">
     <div class="container">
-        <div class="form-card">
-            <div class="form-header">
-                <div class="logo-placeholder">🍱</div>
-                <h1>Sistem Food Bank</h1>
-                <p>Sila isi maklumat di bawah untuk merekodkan pengambilan item anda.</p>
-            </div>
-
-            <form id="foodBankForm" onsubmit="kendalikanHantar(event)">
+        
+        <div id="form-container">
+            <img class="logo-img" src="https://drive.google.com/thumbnail?id=1lMLSrfnuyVzySuZJjNr9fdQ767RFv3Yj&sz=w500" alt="Logo PMFPQS">
+            <h1>Food Bank FPQS</h1>
+            <div class="subtitle">Sistem Perekodan Pengambilan Makanan Mahasiswa</div>
+            
+            <form id="foodbankForm" action="https://docs.google.com/forms/d/e/1FAIpQLSfgEy0zj4AQk3CAei0TbLiNftVd34O4tIrZPkvaAcdInmKMow/formResponse">
                 
                 <div class="form-group">
-                    <label for="namaPelajar">Nama Penuh Pelajar</label>
-                    <input 
-                        type="text" 
-                        id="namaPelajar" 
-                        placeholder="Contoh: AHMAD BIN AMRAN" 
-                        required 
-                        autocomplete="off"
-                    >
+                    <label for="matrix">Nombor Matrik:</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-id-card"></i>
+                        <input type="text" id="matrix" name="entry.1294534751" 
+                                 placeholder="Masukkan No. Matrik" 
+                                 pattern="[0-9]{7}" 
+                                 maxlength="7"
+                                 title="Nombor matrik mestilah mengandungi 7 digit nombor."
+                                 required autocomplete="off">
+                    </div>
+                    <div id="status-message" class="status-msg"></div>
                 </div>
 
                 <div class="form-group">
-                    <label for="pilihanItem">Pilih Item Makanan / Minuman</label>
-                    <select id="pilihanItem" required>
-                        <option value="" disabled selected>-- Sila Pilih Satu Item --</option>
-                        <option value="Air Kotak">Air Kotak</option>
-                        <option value="Biskut Paket">Biskut Paket</option>
-                        <option value="Roti Sandwic">Roti Sandwic</option>
-                        <option value="Makanan Segera">Makanan Segera (Cup)</option>
-                    </select>
-                    <small class="helper-text">*Nota: Setiap pelajar terhad kepada maksimum 1 unit bagi setiap item sehari.</small>
+                    <label for="fullname">Nama Penuh:</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-user"></i>
+                        <input type="text" id="fullname" name="entry.734286818" placeholder="Nama penuh anda" required>
+                    </div>
                 </div>
 
-                <button type="submit" id="btnHantar" class="btn-submit">
-                    Sahkan & Rekod Pengambilan
+                <div class="form-group">
+                    <label for="phone">Nombor Telefon:</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-phone"></i>
+                        <input type="tel" id="phone" name="entry.1889772888" placeholder="Contoh: 0123456789" required>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="program">Program Pengajian:</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-graduation-cap"></i>
+                        <select id="program" name="entry.1844269467" required>
+                            <option value="" disabled selected>-- Pilih Program --</option>
+                            <option value="Pengajian Quran dan Sunnah">PENGAJIAN QURAN DAN SUNNAH</option>
+                            <option value="Pengajian Quran dengan Multimedia">PENGAJIAN QURAN DENGAN MULTIMEDIA</option>
+                            <option value="Pengajian Sunnah dengan Pengurusan Maklumat">PENGAJIAN SUNNAH DENGAN PENGURUSAN MAKLUMAT</option>
+                            <option value="Pengajian Qiraat">PENGAJIAN QIRAAT</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label for="year">Tahun Pengajian:</label>
+                    <div class="input-wrapper">
+                        <i class="fas fa-calendar-alt"></i>
+                        <select id="year" name="entry.1628309231" required>
+                            <option value="" disabled selected>-- Pilih Tahun --</option>
+                            <option value="Tahun 1">TAHUN 1</option>
+                            <option value="Tahun 2">TAHUN 2</option>
+                            <option value="Tahun 3">TAHUN 3</option>
+                            <option value="Tahun 4">TAHUN 4</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label>Pilih Barang (Maksimum 2 item, setiap jenis 1 sahaja):</label>
+                    <div class="cart-box" id="cart-container">
+                        <div class="cart-header">
+                            <span>Senarai Item</span>
+                            <span id="total-count-display">0/2 Diambil</span>
+                        </div>
+                    </div>
+                    <input type="hidden" id="final_items" name="entry.1185565492" required>
+                </div>
+
+                <button type="submit" id="submitBtn" class="submit-btn" disabled>
+                    <i class="fas fa-spinner fa-spin"></i> Memuatkan Pangkalan...
                 </button>
+
             </form>
         </div>
-        
-        <div class="footer">
-            <p>&copy; 2026 Jawatankuasa Kebajikan Food Bank. Hak Cipta Terpelihara.</p>
+
+        <div id="success-screen">
+            <div class="success-icon"><i class="fas fa-check-circle"></i></div>
+            <h2>Berjaya Direkodkan!</h2>
+            <p style="margin-bottom: 5px;">Terima kasih. Maklumat pengambilan anda telah berjaya disimpan.</p>
+            
+            <div class="action-btn-container">
+                <a href="https://sites.google.com/raudah.usim.edu.my/pmfpqsusim/sumbanganfoodbank" target="_blank" class="btn-action btn-donate">
+                    <i class="fas fa-hand-holding-heart"></i> Jom Sumbang
+                </a>
+                <a href="https://sites.google.com/raudah.usim.edu.my/pmfpqsusim/aktiviti_1/food-bank-fpqs" target="_blank" class="btn-action btn-status">
+                    <i class="fas fa-chart-line"></i> Status Food Bank
+                </a>
+            </div>
+            
+            <h3 style="margin-top: 30px; margin-bottom: 10px; color: var(--primary-color); font-size: 18px; font-weight: 700;">Iklan Food Bank PWZ USIM</h3>
+            
+            <div class="carousel-container">
+                <div class="carousel-slide fade">
+                    <img src="https://drive.google.com/thumbnail?id=17uSTMwHvpLNO_bq8_EVPJThmVUbAKiup&sz=w800" alt="Iklan 1">
+                </div>
+                <div class="carousel-slide fade">
+                    <img src="https://drive.google.com/thumbnail?id=1VRvKMY3MjF7qz7qwtUKiOQW4N8lzmu2G&sz=w800" alt="Iklan 2">
+                </div>
+            </div>
+            
+            <div class="carousel-dots">
+                <span class="dot" onclick="currentSlide(1)"></span>
+                <span class="dot" onclick="currentSlide(2)"></span>
+            </div>
+            <div class="refresh-text">
+                <i class="fas fa-sync-alt" style="margin-right: 5px;"></i> Sila <strong>Refresh / Muat Semula</strong> halaman ini untuk memasukkan rekod baharu.
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<footer class="site-footer">
+    <div class="footer-content">
+        <div class="footer-col left-col">
+            <h3>PERSATUAN MAHASISWA</h3>
+            <p>FAKULTI PENGAJIAN QURAN DAN SUNNAH<br>UNIVERSITI SAINS ISLAM MALAYSIA</p>
+            <p class="motto">"Mahasiswa Holistik, Memacu Kecemerlangan"</p>
+        </div>
+        <div class="footer-col center-col">
+            <h4>Pautan Pantas</h4>
+            <ul class="footer-links">
+                <li><a href="https://sites.google.com/raudah.usim.edu.my/pmfpqsusim/barisan-pmfpqs-2526">Tentang Kami</a></li>
+                <li><a href="mailto:pmfpqs@outlook.com">Hubungi Kami</a></li>
+            </ul>
+        </div>
+        <div class="footer-col right-col">
+            <h4>Ikuti Kami</h4>
+            <div class="social-icons">
+                <a href="https://www.instagram.com/pmfpqs" class="social-icon icon-ig"><i class="fab fa-instagram"></i></a>
+                <a href="https://www.facebook.com/pmfpqs" class="social-icon icon-fb"><i class="fab fa-facebook-f"></i></a>
+                <a href="https://www.youtube.com/@PMFPQSUSIM" class="social-icon icon-yt"><i class="fab fa-youtube"></i></a>
+                <a href="https://www.tiktok.com/@pmfpqsofficial" class="social-icon icon-tt"><i class="fab fa-tiktok"></i></a>
+                <a href="https://www.whatsapp.com/channel/0029VaH4GGaLtOj4n8TH3Y44" class="social-icon icon-wa"><i class="fab fa-whatsapp"></i></a>
+            </div>
         </div>
     </div>
+    <div class="footer-bottom">&copy; 2026 Persatuan Mahasiswa FPQS, USIM. Hak Cipta Terpelihara.</div>
+</footer>
 
-    <script src="script.js"></script>
-    
-    <script>
-        // Fungsi pencetus apabila butang 'Submit' ditekan
-        function kendalikanHantar(event) {
-            event.preventDefault(); // Mengelakkan halaman daripada 'refresh'
-            
-            const nama = document.getElementById('namaPelajar').value.trim().toUpperCase();
-            const item = document.getElementById('pilihanItem').value;
-            
-            if (!nama || !item) {
-                Swal.fire({
-                    icon: 'warning',
-                    title: 'Maklumat Tidak Lengkap',
-                    text: 'Sila pastikan nama telah diisi dan item telah dipilih.',
-                    confirmButtonColor: '#3b82f6'
-                });
-                return;
-            }
+<script src="script.js"></script>
 
-            // Memanggil fungsi hantarDataTransaksi yang berada di dalam fail script.js
-            hantarDataTransaksi(nama, item);
-        }
-    </script>
 </body>
 </html>
