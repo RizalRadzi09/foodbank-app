@@ -29,7 +29,7 @@ function showSlides() {
     slides[slideIndex-1].style.display = "block";
     dots[slideIndex-1].className += " active-dot";
     
-    slideTimeout = setTimeout(showSlides, 4000); 
+    slideTimeout = setTimeout(showSlides, 8000); 
 }
 
 function currentSlide(n) {
