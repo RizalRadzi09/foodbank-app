@@ -155,11 +155,13 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         btn.classList.remove('btn-locked');
         btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
         btn.setAttribute('data-had-penuh', 'tidak');
+        btn.setAttribute('data-infaq-penuh', 'tidak');
         return;
     }
 
     let latestRecord = null;
     let ambilMakananUtamaHariIni = false;
+    let ambilInfaqHariIni = false;
 
     // Cari dari data terbaharu
     for (let i = databaseRecords.length - 1; i >= 0; i--) {
@@ -173,11 +175,17 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             
             if (isToday(row[0])) {
                 let rowDataStr = row.join(" ");
-                // Periksa jika rekod mengandungi item dari cart biasa
-                let adaMakananUtama = itemList.some(item => rowDataStr.includes(item));
-                
-                if (adaMakananUtama) {
+                // Periksa jika rekod mengandungi item utama
+                if (itemList.some(item => rowDataStr.includes(item))) {
                     ambilMakananUtamaHariIni = true;
+                }
+                // Periksa jika rekod mengandungi item infaq
+                if (rowDataStr.includes("Makanan Infaq")) {
+                    ambilInfaqHariIni = true;
+                }
+                
+                // Jika kedua-dua kuota (utama & infaq) dah penuh untuk hari ini, berhenti mencari
+                if (ambilMakananUtamaHariIni && ambilInfaqHariIni) {
                     break;
                 }
             }
@@ -185,6 +193,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
     }
 
     btn.setAttribute('data-had-penuh', ambilMakananUtamaHariIni ? 'ya' : 'tidak');
+    btn.setAttribute('data-infaq-penuh', ambilInfaqHariIni ? 'ya' : 'tidak');
 
     if (latestRecord) {
         document.getElementById('fullname').value = (latestRecord[2] || '').toUpperCase();
@@ -195,19 +204,25 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         document.getElementById('fullname').readOnly = true;
         document.getElementById('phone').readOnly = true;
 
-        if (ambilMakananUtamaHariIni) {
+        msgEl.style.display = 'block';
+        btn.disabled = false; 
+        btn.classList.remove('btn-locked');
+
+        // Paparkan status yang spesifik bergantung kepada apa yang telah diambil
+        if (ambilMakananUtamaHariIni && ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan makanan pada hari ini.';
-            msgEl.style.display = 'block';
-            btn.disabled = false; 
-            btn.classList.remove('btn-locked');
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had Maksimum harian bagi ambilan semua jenis makanan.';
+        } else if (ambilMakananUtamaHariIni) {
+            msgEl.className = 'status-msg status-error';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan makanan Food Bank pada hari ini.. Anda masih boleh mengambil Makanan Infaq.';
+        } else if (ambilInfaqHariIni) {
+            msgEl.className = 'status-msg status-error';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mengambil makanan infaq pada hari ini. Anda hanya boleh mengambil makanan lain.';
         } else {
             msgEl.className = 'status-msg status-success';
             msgEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.';
-            msgEl.style.display = 'block';
-            btn.disabled = false;
-            btn.classList.remove('btn-locked');
         }
+
     } else {
         clearAutofill();
         msgEl.className = 'status-msg status-info';
@@ -227,6 +242,7 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     
     const btn = document.getElementById('submitBtn');
     const hadPenuh = btn.getAttribute('data-had-penuh') === 'ya';
+    const infaqPenuh = btn.getAttribute('data-infaq-penuh') === 'ya';
 
     // 1. Semak sekiranya dua-dua kosong
     if(currentTotal === 0 && !infaqDicheck) {
@@ -239,12 +255,23 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         return;
     }
 
-    // 2. Semak jika had penuh tapi cuba ambil item utama lagi
+    // 2. Semak jika had Makanan Utama penuh
     if(hadPenuh && currentTotal > 0) {
         Swal.fire({
             icon: 'error',
-            title: 'Had Maksimum Dicapai',
-            text: 'Anda telah membuat ambilan makanan pada hari ini.',
+            title: 'Had Ambilan Dicapai',
+            text: 'Anda telah mencapai had ambilan makanan harian pada hari ini.',
+            confirmButtonColor: '#e74c3c'
+        });
+        return;
+    }
+
+    // 3. Semak jika had Makanan Infaq penuh
+    if(infaqPenuh && infaqDicheck) {
+        Swal.fire({
+            icon: 'error',
+            title: 'Had Ambilan Dicapai',
+            text: 'Anda telah mengambil Makanan Infaq pada hari ini (Maksimum 1 sahaja).',
             confirmButtonColor: '#e74c3c'
         });
         return;
