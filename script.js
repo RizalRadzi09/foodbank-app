@@ -261,7 +261,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         if (ambilMakananUtamaHariIni && ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
             msgEl.innerHTML = currentLang === 'ms' ? 
-                '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had 1 kali ambilan penuh pada hari ini.' : 
+                '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan makanan pada hari ini.' : 
                 '<i class="fas fa-exclamation-circle"></i> <strong>Reminder:</strong> You have reached the maximum of 1 full collection today.';
         } else if (ambilMakananUtamaHariIni) {
             msgEl.className = 'status-msg status-error';
