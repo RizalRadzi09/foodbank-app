@@ -34,7 +34,32 @@ body {
     border-radius: 15px;
     box-shadow: 0 10px 25px rgba(0,0,0,0.1);
     text-align: center;
+    position: relative; /* Wajib diletakkan supaya butang bahasa berada di penjuru container ini */
 }
+
+/* --- GAYA BUTANG PENUKAR BAHASA --- */
+.lang-toggle-btn {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: #ffffff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    z-index: 10;
+}
+
+.lang-toggle-btn:hover {
+    background-color: var(--accent-color);
+    transform: scale(1.05);
+}
+/* ---------------------------------- */
 
 .logo-img { max-width: 140px; height: auto; margin-bottom: 15px; }
 h1 { color: var(--primary-color); font-size: 26px; margin: 0 0 5px 0; font-weight: 700; }
