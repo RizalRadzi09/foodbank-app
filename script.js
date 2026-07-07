@@ -1,6 +1,30 @@
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWO1WcTeYxX7QQMmZjugETaEmGJOSG_TMWCrJohiG91PfrWJSpY5JKro59-USxq-StUOQw5EgyopO/pub?output=csv';
 let databaseRecords = [];
 
+// ==========================================
+// 1. FUNGSI PENUKAR BAHASA (MS / EN)
+// ==========================================
+let currentLang = 'ms';
+
+function toggleLanguage() {
+    // Tukar bahasa semasa
+    currentLang = currentLang === 'ms' ? 'en' : 'ms';
+    
+    // Tukar teks pada butang penukar bahasa
+    document.getElementById('langToggleBtn').innerText = currentLang === 'ms' ? 'English' : 'Bahasa Melayu';
+    
+    // Tukar semua teks statik (inner HTML)
+    document.querySelectorAll('[data-ms]').forEach(el => {
+        el.innerHTML = el.getAttribute(`data-${currentLang}`);
+    });
+
+    // Tukar semua placeholder pada ruang input
+    document.querySelectorAll('[data-ph-ms]').forEach(el => {
+        el.placeholder = el.getAttribute(`data-ph-${currentLang}`);
+    });
+}
+// ==========================================
+
 // Konfigurasi Baharu Had Spesifik Barangan
 const itemLimits = {
     "Air Kotak": 1,
@@ -50,10 +74,10 @@ function currentSlide(n) {
 function initCart() {
     const container = document.getElementById('cart-container');
     
-    // Header Troli yang baharu
+    // Header Troli yang baharu (ditambah sokongan terjemahan automatik untuk 'Item Diambil')
     container.innerHTML = `
         <div class="cart-header">
-            <span>Senarai Item</span>
+            <span data-ms="Senarai Item" data-en="Item List">Senarai Item</span>
             <span id="total-count-display">0 Item Diambil</span>
         </div>
     `;
@@ -83,8 +107,10 @@ function updateQty(itemName, change) {
     if (change > 0 && cart[itemName] >= itemLimits[itemName]) {
         Swal.fire({
             icon: 'warning',
-            title: 'Had Maksimum Dicapai',
-            text: `Anda hanya dibenarkan mengambil MAKSIMUM ${itemLimits[itemName]} unit sahaja untuk [${itemName}].`,
+            title: currentLang === 'ms' ? 'Had Maksimum Dicapai' : 'Maximum Limit Reached',
+            text: currentLang === 'ms' ? 
+                  `Anda hanya dibenarkan mengambil MAKSIMUM ${itemLimits[itemName]} unit sahaja untuk [${itemName}].` : 
+                  `You are only allowed to take a MAXIMUM of ${itemLimits[itemName]} unit(s) for [${itemName}].`,
             confirmButtonColor: '#2c3e50'
         });
         return;
@@ -96,9 +122,10 @@ function updateQty(itemName, change) {
     cart[itemName] += change;
     document.getElementById(`qty_${itemName.replace(/ /g, '_')}`).innerText = cart[itemName];
     
-    // Kira semula total selepas perubahan untuk paparan skrin
+    // Kira semula total selepas perubahan untuk paparan skrin (Disokong Dwibahasa)
     let currentTotal = itemList.reduce((total, item) => total + (cart[item] || 0), 0);
-    document.getElementById('total-count-display').innerText = `${currentTotal} Item Diambil`;
+    let itemText = currentLang === 'ms' ? 'Item Diambil' : 'Items Taken';
+    document.getElementById('total-count-display').innerText = `${currentTotal} ${itemText}`;
     
     // Asingkan data submission mengikut soalan Google Form
     let selectedItems = [];
@@ -151,9 +178,9 @@ async function fetchDatabase() {
 
         const btn = document.getElementById('submitBtn');
         btn.disabled = false;
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
+        btn.innerHTML = currentLang === 'ms' ? '<i class="fas fa-paper-plane"></i> Hantar Rekod' : '<i class="fas fa-paper-plane"></i> Submit Record';
     } catch (err) {
-        document.getElementById('submitBtn').innerHTML = '<i class="fas fa-exclamation-triangle"></i> Gagal Memuat Data (Sila Refresh)';
+        document.getElementById('submitBtn').innerHTML = currentLang === 'ms' ? '<i class="fas fa-exclamation-triangle"></i> Gagal Memuat Data' : '<i class="fas fa-exclamation-triangle"></i> Failed to Load Data';
     }
 }
 
@@ -176,7 +203,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         msgEl.style.display = 'none';
         btn.disabled = false;
         btn.classList.remove('btn-locked');
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
+        btn.innerHTML = currentLang === 'ms' ? '<i class="fas fa-paper-plane"></i> Hantar Rekod' : '<i class="fas fa-paper-plane"></i> Submit Record';
         btn.setAttribute('data-had-penuh', 'tidak');
         btn.setAttribute('data-infaq-penuh', 'tidak');
         return;
@@ -230,25 +257,35 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         btn.disabled = false; 
         btn.classList.remove('btn-locked');
 
-        // Paparkan status peringatan yang spesifik
+        // Paparkan status peringatan yang spesifik (Dwibahasa)
         if (ambilMakananUtamaHariIni && ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had 1 kali ambilan penuh pada hari ini.';
+            msgEl.innerHTML = currentLang === 'ms' ? 
+                '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had 1 kali ambilan penuh pada hari ini.' : 
+                '<i class="fas fa-exclamation-circle"></i> <strong>Reminder:</strong> You have reached the maximum of 1 full collection today.';
         } else if (ambilMakananUtamaHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan barangan utama hari ini. Anda masih boleh ambil Makanan Infaq.';
+            msgEl.innerHTML = currentLang === 'ms' ? 
+                '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan barangan utama hari ini. Anda masih boleh ambil Makanan Infaq.' :
+                '<i class="fas fa-exclamation-circle"></i> <strong>Reminder:</strong> You have collected main items today. You can still take Makanan Infaq.';
         } else if (ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mengambil Makanan Infaq hari ini. Anda hanya boleh mengambil barangan utama sahaja.';
+            msgEl.innerHTML = currentLang === 'ms' ? 
+                '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mengambil Makanan Infaq hari ini. Anda hanya boleh mengambil barangan utama sahaja.' :
+                '<i class="fas fa-exclamation-circle"></i> <strong>Reminder:</strong> You have taken Makanan Infaq today. You can only collect main items now.';
         } else {
             msgEl.className = 'status-msg status-success';
-            msgEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.';
+            msgEl.innerHTML = currentLang === 'ms' ? 
+                '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.' :
+                '<i class="fas fa-check-circle"></i> <strong>Record Found:</strong> Please select your items.';
         }
 
     } else {
         clearAutofill();
         msgEl.className = 'status-msg status-info';
-        msgEl.innerHTML = '<i class="fas fa-info-circle"></i> <strong>Pengguna Baharu:</strong> Sila isi maklumat penuh anda buat kali pertama.';
+        msgEl.innerHTML = currentLang === 'ms' ? 
+            '<i class="fas fa-info-circle"></i> <strong>Pengguna Baharu:</strong> Sila isi maklumat penuh anda buat kali pertama.' :
+            '<i class="fas fa-info-circle"></i> <strong>New User:</strong> Please fill in your full details for the first time.';
         msgEl.style.display = 'block';
         btn.disabled = false;
         btn.classList.remove('btn-locked');
@@ -269,8 +306,8 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     if(currentTotal === 0 && !infaqDicheck) {
         Swal.fire({
             icon: 'error',
-            title: 'Troli Kosong',
-            text: 'Sila pilih sekurang-kurangnya 1 item makanan sebelum menekan butang hantar.',
+            title: currentLang === 'ms' ? 'Troli Kosong' : 'Empty Cart',
+            text: currentLang === 'ms' ? 'Sila pilih sekurang-kurangnya 1 item makanan sebelum menekan butang hantar.' : 'Please select at least 1 food item before submitting.',
             confirmButtonColor: '#e74c3c'
         });
         return;
@@ -280,8 +317,8 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     if(hadPenuh && currentTotal > 0) {
         Swal.fire({
             icon: 'error',
-            title: 'Had Ambilan Dicapai',
-            text: 'Anda telah mencapai had 1 kali ambilan harian pada hari ini.',
+            title: currentLang === 'ms' ? 'Had Ambilan Dicapai' : 'Collection Limit Reached',
+            text: currentLang === 'ms' ? 'Anda telah mencapai had 1 kali ambilan harian pada hari ini.' : 'You have reached your daily collection limit for today.',
             confirmButtonColor: '#e74c3c'
         });
         return;
@@ -291,14 +328,14 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     if(infaqPenuh && infaqDicheck) {
         Swal.fire({
             icon: 'error',
-            title: 'Had Ambilan Dicapai',
-            text: 'Anda telah mengambil Makanan Infaq pada hari ini.',
+            title: currentLang === 'ms' ? 'Had Ambilan Dicapai' : 'Collection Limit Reached',
+            text: currentLang === 'ms' ? 'Anda telah mengambil Makanan Infaq pada hari ini.' : 'You have already collected Makanan Infaq today.',
             confirmButtonColor: '#e74c3c'
         });
         return;
     }
 
-    btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Menghantar Data...';
+    btn.innerHTML = currentLang === 'ms' ? '<i class="fas fa-spinner fa-spin"></i> Menghantar Data...' : '<i class="fas fa-spinner fa-spin"></i> Submitting...';
     btn.disabled = true;
 
     // Hantar data secara native ke Google Form
@@ -317,11 +354,11 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     }).catch(err => {
         Swal.fire({
             icon: 'error',
-            title: 'Ralat Sistem',
-            text: 'Ralat sambungan. Sila pastikan sambungan internet anda stabil dan cuba lagi.',
+            title: currentLang === 'ms' ? 'Ralat Sistem' : 'System Error',
+            text: currentLang === 'ms' ? 'Ralat sambungan. Sila pastikan sambungan internet anda stabil dan cuba lagi.' : 'Connection error. Please ensure your internet connection is stable and try again.',
             confirmButtonColor: '#e74c3c'
         });
-        btn.innerHTML = '<i class="fas fa-paper-plane"></i> Hantar Rekod';
+        btn.innerHTML = currentLang === 'ms' ? '<i class="fas fa-paper-plane"></i> Hantar Rekod' : '<i class="fas fa-paper-plane"></i> Submit Record';
         btn.disabled = false;
     });
 });
