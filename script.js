@@ -1,14 +1,23 @@
 const csvUrl = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQPWO1WcTeYxX7QQMmZjugETaEmGJOSG_TMWCrJohiG91PfrWJSpY5JKro59-USxq-StUOQw5EgyopO/pub?output=csv';
 let databaseRecords = [];
 
-// Senarai Barang Utama yang dikira dalam had 2 barangan harian (Roti Ditambah)
-const standardItems = ["Air Kotak", "Biskut Lexus", "Biskut Oat Krunch", "Kismis", "Kurma", "Roti"];
+// Konfigurasi Baharu Had Spesifik Barangan
+const itemLimits = {
+    "Air Kotak": 1,
+    "Roti": 1,
+    "Kismis": 1,
+    "Makanan Infaq": 1,
+    "Biskut Lexus": 2,
+    "Biskut Oat Krunch": 2,
+    "Kurma": 2
+};
 
-// Senarai Keseluruhan yang akan dipaparkan di skrin Troli
-const itemList = [...standardItems, "Makanan Infaq"];
+// Menjana senarai barangan berdasarkan konfigurasi di atas
+const itemList = Object.keys(itemLimits);
+// Mengasingkan barangan utama daripada Infaq untuk tujuan validasi
+const mainItems = itemList.filter(item => item !== "Makanan Infaq");
 
 let cart = {};
-const MAX_QTY = 2;
 
 let slideIndex = 0;
 let slideTimeout;
@@ -40,13 +49,25 @@ function currentSlide(n) {
 
 function initCart() {
     const container = document.getElementById('cart-container');
+    
+    // Header Troli yang baharu
+    container.innerHTML = `
+        <div class="cart-header">
+            <span>Senarai Item</span>
+            <span id="total-count-display">0 Item Diambil</span>
+        </div>
+    `;
+
     itemList.forEach(item => {
         cart[item] = 0;
         const itemId = item.replace(/ /g, '_');
         const div = document.createElement('div');
         div.className = 'cart-item';
         div.innerHTML = `
-            <span class="item-name">${item}</span>
+            <div style="display: flex; flex-direction: column;">
+                <span class="item-name">${item}</span>
+                <small style="color: #e74c3c; font-size: 11px; margin-top: 2px;">(Maksimum: ${itemLimits[item]} unit)</small>
+            </div>
             <div class="cart-controls">
                 <button type="button" class="cart-btn" onclick="updateQty('${item}', -1)">-</button>
                 <span class="item-qty" id="qty_${itemId}">0</span>
@@ -58,26 +79,12 @@ function initCart() {
 }
 
 function updateQty(itemName, change) {
-    // Hanya kira jumlah barangan utama untuk kuota maks 2 (Makanan Infaq dikecualikan)
-    let currentTotal = standardItems.reduce((total, item) => total + (cart[item] || 0), 0);
-
-    // Had maks 1 bagi setiap jenis barang (termasuk Infaq)
-    if (change > 0 && cart[itemName] >= 1) {
+    // Had maks spesifik bagi setiap jenis barang
+    if (change > 0 && cart[itemName] >= itemLimits[itemName]) {
         Swal.fire({
             icon: 'warning',
-            title: 'Perhatian',
-            text: `Anda hanya dibenarkan mengambil MAKSIMUM 1 unit sahaja untuk item [${itemName}].`,
-            confirmButtonColor: '#2c3e50'
-        });
-        return;
-    }
-
-    // Had maks 2 secara keseluruhan HANYA untuk barang utama
-    if (change > 0 && itemName !== "Makanan Infaq" && currentTotal >= MAX_QTY) {
-        Swal.fire({
-            icon: 'info',
-            title: 'Had Maksimum',
-            text: 'Maksimum 2 barang utama sahaja dibenarkan!',
+            title: 'Had Maksimum Dicapai',
+            text: `Anda hanya dibenarkan mengambil MAKSIMUM ${itemLimits[itemName]} unit sahaja untuk [${itemName}].`,
             confirmButtonColor: '#2c3e50'
         });
         return;
@@ -89,13 +96,13 @@ function updateQty(itemName, change) {
     cart[itemName] += change;
     document.getElementById(`qty_${itemName.replace(/ /g, '_')}`).innerText = cart[itemName];
     
-    // Kira semula total selepas perubahan
-    currentTotal = standardItems.reduce((total, item) => total + (cart[item] || 0), 0);
-    document.getElementById('total-count-display').innerText = `${currentTotal}/${MAX_QTY} Diambil`;
+    // Kira semula total selepas perubahan untuk paparan skrin
+    let currentTotal = itemList.reduce((total, item) => total + (cart[item] || 0), 0);
+    document.getElementById('total-count-display').innerText = `${currentTotal} Item Diambil`;
     
     // Asingkan data submission mengikut soalan Google Form
     let selectedItems = [];
-    standardItems.forEach(item => {
+    mainItems.forEach(item => {
         if (cart[item] > 0) selectedItems.push(`${item} (${cart[item]})`);
     });
     document.getElementById('final_items').value = selectedItems.join(', ');
@@ -191,8 +198,8 @@ document.getElementById('matrix').addEventListener('input', (e) => {
             
             if (isToday(row[0])) {
                 let rowDataStr = row.join(" ");
-                // Periksa jika rekod mengandungi item UTAMA (Termasuk Roti)
-                if (standardItems.some(item => rowDataStr.includes(item))) {
+                // Periksa jika rekod mengandungi sebarang item UTAMA
+                if (mainItems.some(item => rowDataStr.includes(item))) {
                     ambilMakananUtamaHariIni = true;
                 }
                 // Periksa jika rekod mengandungi item INFAQ
@@ -223,16 +230,16 @@ document.getElementById('matrix').addEventListener('input', (e) => {
         btn.disabled = false; 
         btn.classList.remove('btn-locked');
 
-        // Paparkan status yang spesifik
+        // Paparkan status peringatan yang spesifik
         if (ambilMakananUtamaHariIni && ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had Maksimum harian bagi ambilan semua jenis makanan.';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mencapai had 1 kali ambilan penuh pada hari ini.';
         } else if (ambilMakananUtamaHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan barangan utama pada hari ini. Anda masih boleh mengambil Makanan Infaq.';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah membuat ambilan barangan utama hari ini. Anda masih boleh ambil Makanan Infaq.';
         } else if (ambilInfaqHariIni) {
             msgEl.className = 'status-msg status-error';
-            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mengambil Makanan Infaq pada hari ini. Anda hanya boleh mengambil barangan utama sahaja.';
+            msgEl.innerHTML = '<i class="fas fa-exclamation-circle"></i> <strong>Peringatan:</strong> Anda telah mengambil Makanan Infaq hari ini. Anda hanya boleh mengambil barangan utama sahaja.';
         } else {
             msgEl.className = 'status-msg status-success';
             msgEl.innerHTML = '<i class="fas fa-check-circle"></i> <strong>Rekod Ditemui:</strong> Sila pilih item anda.';
@@ -251,7 +258,7 @@ document.getElementById('matrix').addEventListener('input', (e) => {
 document.getElementById('foodbankForm').addEventListener('submit', function(e) {
     e.preventDefault(); 
 
-    const currentTotal = standardItems.reduce((total, item) => total + (cart[item] || 0), 0);
+    const currentTotal = mainItems.reduce((total, item) => total + (cart[item] || 0), 0);
     const infaqDicheck = cart["Makanan Infaq"] > 0;
     
     const btn = document.getElementById('submitBtn');
@@ -269,23 +276,23 @@ document.getElementById('foodbankForm').addEventListener('submit', function(e) {
         return;
     }
 
-    // 2. Semak jika had Makanan Utama penuh
+    // 2. Semak jika pengguna sudah mengambil ambilan pada hari ini
     if(hadPenuh && currentTotal > 0) {
         Swal.fire({
             icon: 'error',
             title: 'Had Ambilan Dicapai',
-            text: 'Anda telah mencapai had ambilan makanan utama harian pada hari ini.',
+            text: 'Anda telah mencapai had 1 kali ambilan harian pada hari ini.',
             confirmButtonColor: '#e74c3c'
         });
         return;
     }
 
-    // 3. Semak jika had Makanan Infaq penuh
+    // 3. Semak jika had Makanan Infaq harian telah dicapai
     if(infaqPenuh && infaqDicheck) {
         Swal.fire({
             icon: 'error',
             title: 'Had Ambilan Dicapai',
-            text: 'Anda telah mengambil Makanan Infaq pada hari ini (Maksimum 1 sahaja).',
+            text: 'Anda telah mengambil Makanan Infaq pada hari ini.',
             confirmButtonColor: '#e74c3c'
         });
         return;
